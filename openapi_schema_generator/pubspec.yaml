@@ -1,0 +1,23 @@
+name: openapi_schema_generator
+description: An opiniated generator for OpenAPI definitions.
+version: 0.5.4
+homepage: https://github.com/aloisdeniel/openapi_schema_generator
+
+environment:
+  sdk: '>=2.16.1 <3.0.0'
+
+executables:
+  generate:
+
+dependencies:
+  args: ^2.3.0
+  code_builder: ^4.1.0
+  dart_style: ^2.2.1
+  logging: ^1.0.2
+  open_api_forked: ^3.0.0+5
+  path: ^1.8.1
+  recase: ^4.0.0
+  collection: ^1.15.0
+
+dev_dependencies:
+  lints: ^1.0.0
