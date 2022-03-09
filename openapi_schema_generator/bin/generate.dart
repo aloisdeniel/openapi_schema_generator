@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:openapi_schema_generator/src/context.dart';
 import 'package:openapi_schema_generator/src/generators/api.dart';
+import 'package:openapi_schema_generator/src/generators/integration_test.dart';
 import 'package:openapi_schema_generator/src/generators/package_initializer.dart';
 import 'package:openapi_schema_generator/src/generators/response.dart';
 import 'package:openapi_schema_generator/src/options.dart';
-import 'package:openapi_schema_generator/src/generators/schema.dart';
+import 'package:openapi_schema_generator/src/generators/schema/schema.dart';
 
 Future<void> main(List<String> arguments) async {
   Logger.root.level = Level.INFO;
@@ -32,4 +33,7 @@ Future<void> main(List<String> arguments) async {
 
   const api = ApiGenerator();
   await api.generate(context);
+
+  const integrationTest = IntegrationTestGenerator();
+  await integrationTest.generate(context);
 }

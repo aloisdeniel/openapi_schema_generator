@@ -19,12 +19,14 @@ environment:
 dependencies:
   dio: '>=4.0.0 <5.0.0'
   freezed_annotation: ^1.1.0
+  json_annotation: ^4.4.0
 
 dev_dependencies:
   build_runner: ^2.1.7
   freezed: ^1.1.1
   json_serializable: ^6.1.4
-  lints: ^1.0.0''';
+  lints: ^1.0.0
+  test: ^1.20.1''';
   }
 
   Future<void> initialize(Context context) async {
@@ -40,6 +42,11 @@ dev_dependencies:
     final lib = Directory(path.join(context.outputDirectory.path, 'lib'));
     if (!lib.existsSync()) {
       await lib.create(recursive: true);
+    }
+
+    final test = Directory(path.join(context.outputDirectory.path, 'test'));
+    if (!test.existsSync()) {
+      await test.create(recursive: true);
     }
   }
 }

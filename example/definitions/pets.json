@@ -9,7 +9,7 @@
   },
   "servers": [
     {
-      "url": "http://petstore.swagger.io/v1"
+      "url": "https://petstore.swagger.io/"
     }
   ],
   "paths": {
@@ -178,9 +178,31 @@
           }
         }
       },
+      "CatOrDog": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Cat"
+          },
+          {
+            "$ref": "#/components/schemas/Dog"
+          }
+        ]
+      },
       "CatAndDog": {
         "type": "object",
         "allOf": [
+          {
+            "$ref": "#/components/schemas/Cat"
+          },
+          {
+            "$ref": "#/components/schemas/Dog"
+          }
+        ]
+      },
+      "CatAndOrDog": {
+        "type": "object",
+        "anyOf": [
           {
             "$ref": "#/components/schemas/Cat"
           },

@@ -180,7 +180,7 @@ Dog _$DogFromJson(Map<String, dynamic> json) {
 class _$DogTearOff {
   const _$DogTearOff();
 
-  _Dog call({required int id, required String name, DogBreed? breed}) {
+  _Dog call({required int id, required String name, String? breed}) {
     return _Dog(
       id: id,
       name: name,
@@ -200,7 +200,7 @@ const $Dog = _$DogTearOff();
 mixin _$Dog {
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  DogBreed? get breed => throw _privateConstructorUsedError;
+  String? get breed => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -211,7 +211,7 @@ mixin _$Dog {
 abstract class $DogCopyWith<$Res> {
   factory $DogCopyWith(Dog value, $Res Function(Dog) then) =
       _$DogCopyWithImpl<$Res>;
-  $Res call({int id, String name, DogBreed? breed});
+  $Res call({int id, String name, String? breed});
 }
 
 /// @nodoc
@@ -240,7 +240,7 @@ class _$DogCopyWithImpl<$Res> implements $DogCopyWith<$Res> {
       breed: breed == freezed
           ? _value.breed
           : breed // ignore: cast_nullable_to_non_nullable
-              as DogBreed?,
+              as String?,
     ));
   }
 }
@@ -250,7 +250,7 @@ abstract class _$DogCopyWith<$Res> implements $DogCopyWith<$Res> {
   factory _$DogCopyWith(_Dog value, $Res Function(_Dog) then) =
       __$DogCopyWithImpl<$Res>;
   @override
-  $Res call({int id, String name, DogBreed? breed});
+  $Res call({int id, String name, String? breed});
 }
 
 /// @nodoc
@@ -280,7 +280,7 @@ class __$DogCopyWithImpl<$Res> extends _$DogCopyWithImpl<$Res>
       breed: breed == freezed
           ? _value.breed
           : breed // ignore: cast_nullable_to_non_nullable
-              as DogBreed?,
+              as String?,
     ));
   }
 }
@@ -297,7 +297,7 @@ class _$_Dog implements _Dog {
   @override
   final String name;
   @override
-  final DogBreed? breed;
+  final String? breed;
 
   @override
   String toString() {
@@ -333,7 +333,7 @@ class _$_Dog implements _Dog {
 }
 
 abstract class _Dog implements Dog {
-  const factory _Dog({required int id, required String name, DogBreed? breed}) =
+  const factory _Dog({required int id, required String name, String? breed}) =
       _$_Dog;
 
   factory _Dog.fromJson(Map<String, dynamic> json) = _$_Dog.fromJson;
@@ -343,7 +343,7 @@ abstract class _Dog implements Dog {
   @override
   String get name;
   @override
-  DogBreed? get breed;
+  String? get breed;
   @override
   @JsonKey(ignore: true)
   _$DogCopyWith<_Dog> get copyWith => throw _privateConstructorUsedError;
@@ -357,7 +357,7 @@ CatAndDog _$CatAndDogFromJson(Map<String, dynamic> json) {
 class _$CatAndDogTearOff {
   const _$CatAndDogTearOff();
 
-  _CatAndDog call({required int id, required String name, DogBreed? breed}) {
+  _CatAndDog call({required int id, required String name, String? breed}) {
     return _CatAndDog(
       id: id,
       name: name,
@@ -377,7 +377,7 @@ const $CatAndDog = _$CatAndDogTearOff();
 mixin _$CatAndDog {
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  DogBreed? get breed => throw _privateConstructorUsedError;
+  String? get breed => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -389,7 +389,7 @@ mixin _$CatAndDog {
 abstract class $CatAndDogCopyWith<$Res> {
   factory $CatAndDogCopyWith(CatAndDog value, $Res Function(CatAndDog) then) =
       _$CatAndDogCopyWithImpl<$Res>;
-  $Res call({int id, String name, DogBreed? breed});
+  $Res call({int id, String name, String? breed});
 }
 
 /// @nodoc
@@ -418,7 +418,7 @@ class _$CatAndDogCopyWithImpl<$Res> implements $CatAndDogCopyWith<$Res> {
       breed: breed == freezed
           ? _value.breed
           : breed // ignore: cast_nullable_to_non_nullable
-              as DogBreed?,
+              as String?,
     ));
   }
 }
@@ -429,7 +429,7 @@ abstract class _$CatAndDogCopyWith<$Res> implements $CatAndDogCopyWith<$Res> {
           _CatAndDog value, $Res Function(_CatAndDog) then) =
       __$CatAndDogCopyWithImpl<$Res>;
   @override
-  $Res call({int id, String name, DogBreed? breed});
+  $Res call({int id, String name, String? breed});
 }
 
 /// @nodoc
@@ -459,15 +459,16 @@ class __$CatAndDogCopyWithImpl<$Res> extends _$CatAndDogCopyWithImpl<$Res>
       breed: breed == freezed
           ? _value.breed
           : breed // ignore: cast_nullable_to_non_nullable
-              as DogBreed?,
+              as String?,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$_CatAndDog implements _CatAndDog {
-  const _$_CatAndDog({required this.id, required this.name, this.breed});
+class _$_CatAndDog extends _CatAndDog {
+  const _$_CatAndDog({required this.id, required this.name, this.breed})
+      : super._();
 
   factory _$_CatAndDog.fromJson(Map<String, dynamic> json) =>
       _$$_CatAndDogFromJson(json);
@@ -477,7 +478,7 @@ class _$_CatAndDog implements _CatAndDog {
   @override
   final String name;
   @override
-  final DogBreed? breed;
+  final String? breed;
 
   @override
   String toString() {
@@ -512,9 +513,10 @@ class _$_CatAndDog implements _CatAndDog {
   }
 }
 
-abstract class _CatAndDog implements CatAndDog {
+abstract class _CatAndDog extends CatAndDog {
   const factory _CatAndDog(
-      {required int id, required String name, DogBreed? breed}) = _$_CatAndDog;
+      {required int id, required String name, String? breed}) = _$_CatAndDog;
+  const _CatAndDog._() : super._();
 
   factory _CatAndDog.fromJson(Map<String, dynamic> json) =
       _$_CatAndDog.fromJson;
@@ -524,7 +526,7 @@ abstract class _CatAndDog implements CatAndDog {
   @override
   String get name;
   @override
-  DogBreed? get breed;
+  String? get breed;
   @override
   @JsonKey(ignore: true)
   _$CatAndDogCopyWith<_CatAndDog> get copyWith =>

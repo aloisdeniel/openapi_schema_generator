@@ -198,7 +198,6 @@ class FreezedDataClassBuilder {
   }
 
   Constructor _createFromJson(String name) {
-    //factory Example.fromJson(Map<String, dynamic> json) => _$ExampleFromJson(json);
     final builder = ConstructorBuilder()
       ..name = 'fromJson'
       ..factory = true

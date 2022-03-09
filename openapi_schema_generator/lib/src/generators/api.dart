@@ -30,6 +30,20 @@ class ApiGenerator {
 
       final builder = ClassBuilder()..name = 'Api';
 
+      // Server urls
+      final servers = context.definition.servers;
+      if (servers != null && servers.isNotEmpty) {
+        builder.fields.add(Field(
+          (b) => b
+            ..name = 'servers'
+            ..static = true
+            ..type = refer('List<String>')
+            ..assignment = Code('[' +
+                servers.map((server) => '\'${server?.url}\',').join() +
+                ']'),
+        ));
+      }
+
       builder.fields.add(Field((b) => b
         ..name = 'client'
         ..modifier = FieldModifier.final$
@@ -165,7 +179,11 @@ class ApiGenerator {
         [];
 
     for (var parameter in pathParameters) {
-      uri = uri.replaceAll('{$parameter}', '\${$parameter}');
+      final key = parameter?.name;
+      if (key != null) {
+        final encodedParameter = 'Uri.encodeComponent($key.toString())';
+        uri = uri.replaceAll('{$key}', '\${$encodedParameter}');
+      }
     }
     code.write(
       'final response = await client.${method.toLowerCase()}(\'$uri\',',
@@ -198,7 +216,9 @@ class ApiGenerator {
           if (!queryParameter.isRequired) {
             code.write('if(${queryParameter.name} != null)');
           }
-          code.write('\'${queryParameter.name}\': ${queryParameter.name},');
+          final encodedParameter =
+              'Uri.encodeQueryComponent(${queryParameter.name}.toString())';
+          code.write('\'${queryParameter.name}\': $encodedParameter,');
         }
       }
 

@@ -58,7 +58,7 @@ class OneOfClassBuilder {
       for (var childTypeName in children) {
         fromJsonBody.writeln('case \'$childTypeName\':');
         fromJsonBody.writeln(
-            'return Pet.${childTypeName.asFieldName()}(${childTypeName.asClassName()}.fromJson(json));');
+            'return $name.${childTypeName.asFieldName()}(${childTypeName.asClassName()}.fromJson(json));');
       }
 
       fromJsonBody.writeln('default:');
@@ -95,6 +95,34 @@ class OneOfClassBuilder {
 
       toJson.body = Code(toJsonBody.toString());
       builder.methods.add(toJson.build());
+
+      // ValidateJson
+      final validateJson = MethodBuilder()
+        ..name = 'validateJson'
+        ..static = true
+        ..returns = refer('bool');
+
+      validateJson.requiredParameters.add(
+        Parameter(
+          (b) => b
+            ..name = 'json'
+            ..type = refer('Map<String, dynamic>'),
+        ),
+      );
+
+      final validateJsonBody = StringBuffer();
+
+      validateJsonBody.writeln('if(!json.containsKey(\'objectType\'))');
+      validateJsonBody.writeln('return false;');
+
+      for (var childTypeName in children) {
+        validateJsonBody.writeln('if($childTypeName.validateJson(json))');
+        validateJsonBody.writeln('return true;');
+      }
+      validateJsonBody.writeln('return false;');
+
+      validateJson.body = Code(validateJsonBody.toString());
+      builder.methods.add(validateJson.build());
     }
 
     // Map

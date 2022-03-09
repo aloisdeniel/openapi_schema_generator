@@ -7,6 +7,10 @@ class Api {
     required this.client,
   });
 
+  static List<String> servers = [
+    'https://petstore.swagger.io/',
+  ];
+
   final Dio client;
 
   /// List all pets
@@ -21,7 +25,7 @@ class Api {
       '/pets',
       cancelToken: cancelToken,
       queryParameters: {
-        if (limit != null) 'limit': limit,
+        if (limit != null) 'limit': Uri.encodeQueryComponent(limit.toString()),
       },
     );
     return ListPetsResponse(response);
@@ -51,7 +55,7 @@ class Api {
     CancelToken? cancelToken,
   }) async {
     final response = await client.get(
-      '/pets/{petId}',
+      '/pets/${Uri.encodeComponent(petId.toString())}',
       cancelToken: cancelToken,
     );
     return ShowPetByIdResponse(response);

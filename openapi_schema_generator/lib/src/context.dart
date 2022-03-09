@@ -62,7 +62,13 @@ class Context {
     final reference = schema.referenceURI;
     if (reference != null && reference.pathSegments.isNotEmpty) {
       final resolvedSchema = resolveSchemaReference(reference);
-      if (resolvedSchema.type == APIType.array) {
+      if ([
+        APIType.array,
+        APIType.string,
+        APIType.boolean,
+        APIType.integer,
+        APIType.number
+      ].contains(resolvedSchema.type)) {
         return toJsonInstance(resolvedSchema, jsonVariableName);
       } else {
         return '$jsonVariableName.toJson()';
@@ -96,7 +102,13 @@ class Context {
     final reference = schema.referenceURI;
     if (reference != null && reference.pathSegments.isNotEmpty) {
       final resolvedSchema = resolveSchemaReference(reference);
-      if (resolvedSchema.type == APIType.array) {
+      if ([
+        APIType.array,
+        APIType.string,
+        APIType.boolean,
+        APIType.integer,
+        APIType.number
+      ].contains(resolvedSchema.type)) {
         return fromJsonInstance(resolvedSchema, jsonVariableName);
       } else {
         final schemaName = findSchemaName(reference);
@@ -124,6 +136,48 @@ class Context {
         return jsonVariableName;
       default:
         return jsonVariableName;
+    }
+  }
+
+  String validateJsonInstance(
+    APISchemaObject schema,
+    String jsonVariableName,
+  ) {
+    final reference = schema.referenceURI;
+    if (reference != null && reference.pathSegments.isNotEmpty) {
+      final resolvedSchema = resolveSchemaReference(reference);
+      if ([
+        APIType.array,
+        APIType.string,
+        APIType.boolean,
+        APIType.integer,
+        APIType.number
+      ].contains(resolvedSchema.type)) {
+        return toJsonInstance(resolvedSchema, jsonVariableName);
+      } else {
+        return '$resolvedSchema.validateJson($jsonVariableName)';
+      }
+    }
+    final type = schema.type;
+    switch (type) {
+      case APIType.integer:
+      case APIType.number:
+        return '$jsonVariableName is num';
+      case APIType.string:
+        return '$jsonVariableName is String';
+      case APIType.boolean:
+        return '$jsonVariableName is bool';
+      case APIType.array:
+        final items = schema.items;
+        if (items != null) {
+          return '$jsonVariableName is List && [...$jsonVariableName.map((e) => ${validateJsonInstance(
+            items,
+            'e',
+          )})]';
+        }
+        return jsonVariableName;
+      default:
+        return 'true';
     }
   }
 

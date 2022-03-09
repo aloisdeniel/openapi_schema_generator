@@ -1,4 +1,4 @@
-final _missingTrailingComma = RegExp(r'([^\,])s*\}\)');
+final _missingTrailingComma = RegExp(r'([^\,])\s*\}\)');
 
 extension FixTrailingCommas on String {
   String fixTrailingCommas() {
