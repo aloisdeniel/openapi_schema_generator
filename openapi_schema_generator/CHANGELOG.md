@@ -1,3 +1,69 @@
+## 0.5.35
+
+- Updated reserved keyword naming for enums.
+
+## 0.5.34
+
+- Updated reserved keyword naming.
+
+## 0.5.33
+
+- Fixed list property extracted types.
+
+## 0.5.32
+
+- Renaming fields with dart reserved keywords.
+
+## 0.5.31
+
+- Extracting inline schema as root schemas before generation.
+
+
+## 0.5.29
+
+- Added environment variable injection for integration test data.
+
+## 0.5.28
+
+- Fixed response result deserialization.
+- Added json content type to API calls.
+
+## 0.5.27
+
+- Added more logs.
+
+## 0.5.26
+
+- Fixed basic types json anyOf serialization.
+
+## 0.5.25
+
+- Fixed basic types json anyOf serialization.
+
+## 0.5.24
+
+- Fixed anyOf json functions.
+
+## 0.5.23
+
+- Fixed anyOf json functions.
+
+## 0.5.22
+
+- Fixed `validateJson` function for allOf.
+
+## 0.5.21
+
+- Fixed `validateJson` function for allOf.
+
+## 0.5.20
+
+- Added json validation for optional properties.
+
+## 0.5.19
+
+- Fixed `validateJson` functions.
+
 ## 0.5.18
 
 - Implementations for anyOf, allOf, oneOf variants.

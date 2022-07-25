@@ -19,26 +19,33 @@ Map<String, dynamic> _$$_CatToJson(_$_Cat instance) => <String, dynamic>{
 _$_Dog _$$_DogFromJson(Map<String, dynamic> json) => _$_Dog(
       id: json['id'] as int,
       name: json['name'] as String,
-      breed: json['breed'] as String?,
+      breed: $enumDecodeNullable(_$DogBreedEnumMap, json['breed']),
     );
 
 Map<String, dynamic> _$$_DogToJson(_$_Dog instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'breed': instance.breed,
+      'breed': _$DogBreedEnumMap[instance.breed],
     };
+
+const _$DogBreedEnumMap = {
+  DogBreed.dingo: 'Dingo',
+  DogBreed.husky: 'Husky',
+  DogBreed.retriever: 'Retriever',
+  DogBreed.shepherd: 'Shepherd',
+};
 
 _$_CatAndDog _$$_CatAndDogFromJson(Map<String, dynamic> json) => _$_CatAndDog(
       id: json['id'] as int,
       name: json['name'] as String,
-      breed: json['breed'] as String?,
+      breed: $enumDecodeNullable(_$DogBreedEnumMap, json['breed']),
     );
 
 Map<String, dynamic> _$$_CatAndDogToJson(_$_CatAndDog instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'breed': instance.breed,
+      'breed': _$DogBreedEnumMap[instance.breed],
     };
 
 _$_Error _$$_ErrorFromJson(Map<String, dynamic> json) => _$_Error(

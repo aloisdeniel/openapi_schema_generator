@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:open_api_forked/v3.dart';
+import 'package:openapi_schema_generator/src/utilities/api_document.dart';
 
 import 'options.dart';
 import 'utilities/freezed_data_class.dart';
@@ -30,6 +31,15 @@ class Context {
       return uri.pathSegments.last;
     }
     throw Exception('The schema with `$uri` reference has not be found');
+  }
+
+  APISchemaObject resolveSchema(APISchemaObject schema) {
+    final ref = schema.referenceURI;
+    if (ref != null) {
+      return resolveSchema(resolveSchemaReference(ref));
+    }
+
+    return schema;
   }
 
   APISchemaObject resolveSchemaReference(Uri uri) {
@@ -153,9 +163,10 @@ class Context {
         APIType.integer,
         APIType.number
       ].contains(resolvedSchema.type)) {
-        return toJsonInstance(resolvedSchema, jsonVariableName);
+        return validateJsonInstance(resolvedSchema, jsonVariableName);
       } else {
-        return '$resolvedSchema.validateJson($jsonVariableName)';
+        final resolvedSchemaName = findSchemaName(reference);
+        return '$resolvedSchemaName.validateJson($jsonVariableName)';
       }
     }
     final type = schema.type;
@@ -170,12 +181,12 @@ class Context {
       case APIType.array:
         final items = schema.items;
         if (items != null) {
-          return '$jsonVariableName is List && [...$jsonVariableName.map((e) => ${validateJsonInstance(
+          return '$jsonVariableName is List && $jsonVariableName.map((e) => ${validateJsonInstance(
             items,
             'e',
-          )})]';
+          )}).every((e) => e)';
         }
-        return jsonVariableName;
+        return '$jsonVariableName is List';
       default:
         return 'true';
     }
@@ -212,6 +223,12 @@ class Context {
     final file = File(options.file);
     final contents = await file.readAsString();
     final definition = APIDocument.fromMap(jsonDecode(contents));
+
+    definition.normalize();
+
+    var encoder = JsonEncoder.withIndent("     ");
+
+    //print(encoder.convert(definition.asMap()));
 
     return Context(
       options: options,

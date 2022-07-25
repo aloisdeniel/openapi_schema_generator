@@ -227,6 +227,10 @@ class ApiGenerator {
       );
     }
 
+    code.writeln('options: Options('
+        'headers: { \'Content-Type\' : \'application/json\',}'
+        ',),');
+
     code.writeln(');');
 
     code.writeln('return $responseType(response);');

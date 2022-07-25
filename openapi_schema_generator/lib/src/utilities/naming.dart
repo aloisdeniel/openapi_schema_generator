@@ -6,9 +6,29 @@ extension NamingExtensions on String {
     return cased.snakeCase._removeSpecialCharacters();
   }
 
+  bool isKeyword() {
+    return const [
+      'true',
+      'false',
+      'var',
+      'final',
+      'return',
+      'extension',
+      'this',
+      'super',
+      'for',
+      'while',
+      'switch',
+      'case',
+      'if',
+      'else',
+    ].contains(this);
+  }
+
   String asFieldName() {
     final cased = ReCase(this);
-    return cased.camelCase._removeSpecialCharacters();
+    final result = cased.camelCase._removeSpecialCharacters();
+    return result.isKeyword() ? '${result}_' : result;
   }
 
   String asClassName() {

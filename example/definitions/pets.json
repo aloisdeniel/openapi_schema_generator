@@ -150,15 +150,6 @@
           }
         }
       },
-      "DogBreed": {
-        "type": "string",
-        "enum": [
-          "Dingo",
-          "Husky",
-          "Retriever",
-          "Shepherd"
-        ]
-      },
       "Dog": {
         "type": "object",
         "required": [
@@ -174,7 +165,13 @@
             "type": "string"
           },
           "breed": {
-            "$ref": "#/components/schemas/DogBreed"
+            "type": "string",
+            "enum": [
+              "Dingo",
+              "Husky",
+              "Retriever",
+              "Shepherd"
+            ]
           }
         }
       },

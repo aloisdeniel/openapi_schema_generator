@@ -24,7 +24,7 @@ class ListPetsResponse with _$ListPetsResponse {
     }
     return ListPetsResponse.fallback(
       response: response,
-      result: response.data,
+      result: Error.fromJson(response.data),
     );
   }
 }
@@ -48,7 +48,7 @@ class CreatePetsResponse with _$CreatePetsResponse {
     }
     return CreatePetsResponse.fallback(
       response: response,
-      result: response.data,
+      result: Error.fromJson(response.data),
     );
   }
 }
@@ -69,12 +69,12 @@ class ShowPetByIdResponse with _$ShowPetByIdResponse {
     if (response.statusCode == 200) {
       return ShowPetByIdResponse.status200(
         response: response,
-        result: response.data,
+        result: Pet.fromJson(response.data),
       );
     }
     return ShowPetByIdResponse.fallback(
       response: response,
-      result: response.data,
+      result: Error.fromJson(response.data),
     );
   }
 }

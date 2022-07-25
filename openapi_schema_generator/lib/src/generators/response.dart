@@ -35,6 +35,21 @@ class ResponseGenerator {
     return null;
   }
 
+  static APISchemaObject? getResultSchema(
+    Context context,
+    APIResponse response,
+  ) {
+    final content = response.content;
+    if (content != null && content.isNotEmpty) {
+      final json = content['application/json'] ?? content.entries.first.value;
+      if (json != null) {
+        return json.schema;
+      }
+    }
+
+    return null;
+  }
+
   List<DataProperty> _buildResponseProperties(
     Context context,
     APIResponse? response,
@@ -105,6 +120,7 @@ class ResponseGenerator {
   Future<void> generate(
     Context context,
   ) async {
+    context.logger.info('[Responses]');
     final output =
         File(path.join(context.outputDirectory.path, 'lib', 'responses.dart'));
     final paths = context.definition.paths;
@@ -119,6 +135,7 @@ class ResponseGenerator {
       ]);
 
       for (var entry in paths.entries) {
+        context.logger.info('  * Path ${entry.key}');
         var path = entry.value;
         if (path != null) {
           final newClasses = generatePath(context, entry.key, path);
@@ -156,6 +173,7 @@ class ResponseGenerator {
     String method,
     APIOperation operation,
   ) {
+    context.logger.info('    - Operation $method ~ ${operation.id}');
     final className = createOperationResponseTypeName(method, operation);
     final dataType = _buildType(context, className, operation);
     if (dataType != null) {
@@ -174,37 +192,28 @@ class ResponseGenerator {
 
       var responses = operation.responses;
 
-/*
-   if (response.statusCode == 200) {
-      return ListPetsResponse.status200(
-        response: response,
-        result: [...(response.data as List).map((e) => Pet.fromJson(e))],
-      );
-    }
-    return ListPetsResponse.fallback(
-      response: response,
-      result: Error.fromJson(response.data),
-    );*/
       final code = StringBuffer();
 
       if (responses != null) {
-        void addResultProperty(String? resultType) {
-          if (resultType != null) {
-            final schema = context.getSchema(resultType);
-            final result = context.fromJsonInstance(schema, 'response.data');
-            code.writeln('result: $result,');
+        void addResultProperty(APIResponse? response) {
+          if (response != null) {
+            final schema = getResultSchema(context, response);
+            if (schema != null) {
+              final result = context.fromJsonInstance(schema, 'response.data');
+              code.writeln('result: $result,');
+            }
           }
         }
 
         for (var response in responses.entries) {
+          context.logger.info('      - Response ${response.key}');
           final value = response.value;
           if (value != null) {
             if (response.key != 'default') {
-              final resultType = getResultType(context, value);
               code.writeln('if (response.statusCode == ${response.key}) {');
               code.writeln('return $className.status${response.key}(');
               code.writeln('response: response,');
-              addResultProperty(resultType);
+              addResultProperty(value);
               code.writeln(');');
               code.writeln('}');
             }
@@ -215,8 +224,7 @@ class ResponseGenerator {
         code.writeln('return $className.fallback(');
         code.writeln('response: response,');
         if (defaultResponse != null) {
-          final resultType = getResultType(context, defaultResponse);
-          addResultProperty(resultType);
+          addResultProperty(defaultResponse);
         }
         code.writeln(');');
       }

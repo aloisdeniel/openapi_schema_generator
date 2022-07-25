@@ -75,7 +75,9 @@ class AllOfClassBuilder {
       }
     }
 
-    final properties = mergedSchema.properties;
+    schema = mergedSchema;
+
+    final properties = schema.properties;
     final builder = FreezedDataClassBuilder(withJson: withJson);
     final result = builder.buildClass(DataClass(
       name: name.asClassName(),
@@ -84,7 +86,7 @@ class AllOfClassBuilder {
           ...properties.entries.where((e) => e.value != null).map(
                 (e) => DataProperty(
                   name: e.key,
-                  required: mergedSchema.required?.contains(e.key) ?? false,
+                  required: schema.required?.contains(e.key) ?? false,
                   type: context.findDartType(e.value),
                 ),
               ),
@@ -97,6 +99,48 @@ class AllOfClassBuilder {
         ..constant = true,
     ));
     result.methods.addAll(asMethods);
+
+    // ValidateJson
+    final validateJson = MethodBuilder()
+      ..name = 'validateJson'
+      ..static = true
+      ..returns = refer('bool');
+
+    validateJson.requiredParameters.add(
+      Parameter(
+        (b) => b
+          ..name = 'json'
+          ..type = refer('Map<String, dynamic>'),
+      ),
+    );
+
+    final validateJsonBody = StringBuffer();
+
+    if (properties != null && properties.isNotEmpty) {
+      for (var property in properties.entries
+          .where((p) => schema.required?.contains(p.key) ?? false)) {
+        final propertySchema = property.value;
+        if (propertySchema != null) {
+          validateJsonBody.writeln(
+              'if(!json.containsKey(\'${property.key}\') || !(${context.validateJsonInstance(propertySchema, 'json[\'${property.key}\']')}))');
+          validateJsonBody.writeln('return false;');
+        }
+      }
+
+      for (var property in properties.entries
+          .where((p) => !(schema.required?.contains(p.key) ?? false))) {
+        final propertySchema = property.value;
+        if (propertySchema != null) {
+          validateJsonBody.writeln(
+              'if(json.containsKey(\'${property.key}\') && !(${context.validateJsonInstance(propertySchema, 'json[\'${property.key}\']')}))');
+          validateJsonBody.writeln('return false;');
+        }
+      }
+    }
+    validateJsonBody.writeln('return true;');
+
+    validateJson.body = Code(validateJsonBody.toString());
+    result.methods.add(validateJson.build());
 
     return result.build();
   }

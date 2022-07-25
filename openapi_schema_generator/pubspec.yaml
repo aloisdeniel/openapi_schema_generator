@@ -1,6 +1,6 @@
 name: openapi_schema_generator
 description: An opiniated generator for OpenAPI definitions.
-version: 0.5.18
+version: 0.5.35
 homepage: https://github.com/aloisdeniel/openapi_schema_generator
 
 environment:

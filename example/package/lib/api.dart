@@ -27,6 +27,11 @@ class Api {
       queryParameters: {
         if (limit != null) 'limit': Uri.encodeQueryComponent(limit.toString()),
       },
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
     );
     return ListPetsResponse(response);
   }
@@ -42,6 +47,11 @@ class Api {
       '/pets',
       cancelToken: cancelToken,
       data: body.toJson(),
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
     );
     return CreatePetsResponse(response);
   }
@@ -57,6 +67,11 @@ class Api {
     final response = await client.get(
       '/pets/${Uri.encodeComponent(petId.toString())}',
       cancelToken: cancelToken,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
     );
     return ShowPetByIdResponse(response);
   }

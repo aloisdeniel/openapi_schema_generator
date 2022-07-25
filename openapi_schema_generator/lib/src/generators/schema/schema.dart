@@ -19,6 +19,7 @@ class SchemaGenerator {
   Future<void> generate(
     Context context,
   ) async {
+    context.logger.info('[Schemas]');
     final output =
         File(path.join(context.outputDirectory.path, 'lib', 'model.dart'));
     final components = context.definition.components;
@@ -38,12 +39,13 @@ class SchemaGenerator {
           var schema = entry.value;
           if (schema != null) {
             if (const [
-              APIType.array,
-              APIType.string,
-              APIType.integer,
-              APIType.number,
-              APIType.boolean,
-            ].contains(schema.type)) {
+                  APIType.array,
+                  APIType.string,
+                  APIType.integer,
+                  APIType.number,
+                  APIType.boolean,
+                ].contains(schema.type) &&
+                schema.enumerated == null) {
               final newType = generateTypeAlias(context, entry.key, schema);
               if (newType != null) library.body.add(newType);
             } else {
@@ -102,7 +104,8 @@ class SchemaGenerator {
     return builder.build(DataEnum(
       name: name.asClassName(),
       values: [
-        if (enumerated != null) ...enumerated.map((e) => e.toString()),
+        if (enumerated != null)
+          ...enumerated.map((e) => e.toString().asFieldName()),
       ],
     ));
   }
@@ -115,14 +118,14 @@ class SchemaGenerator {
     // If allOf, then we merge all properties before generating class
     final allOf = schema.allOf;
     if (allOf != null && allOf.isNotEmpty) {
-      context.logger
-          .info('Merging all properties of class for `$name` allOf schema...');
+      context.logger.info(
+          '  * Merging all properties of class for `$name` allOf schema...');
       return generateAllOf(context, name, schema, allOf);
     }
     final anyOf = schema.anyOf;
     if (anyOf != null && anyOf.isNotEmpty) {
-      context.logger
-          .info('Merging all properties of class for `$name` anyOf schema...');
+      context.logger.info(
+          '  * Merging all properties of class for `$name` anyOf schema...');
       return generateAnyOf(context, name, schema, anyOf);
     }
     final oneOf = schema.oneOf;
@@ -132,7 +135,7 @@ class SchemaGenerator {
       if (oneOf
           .any((e) => e?.type == APIType.object && e?.referenceURI == null)) {
         context.logger.warning(
-            'When using `oneOf`, only referenced object models (`\$ref`) work');
+            '  When using `oneOf`, only referenced object models (`\$ref`) work');
       }
 
       return generateOneOf(context, name, schema, oneOf);
@@ -140,12 +143,12 @@ class SchemaGenerator {
 
     if (schema.type == APIType.string &&
         (schema.enumerated?.isNotEmpty ?? false)) {
-      context.logger.info('Generating enum type for `$name` schema...');
+      context.logger.info('  * Generating enum type for `$name` schema...');
       return generateEnum(context, name, schema);
     }
 
     if (schema.type == APIType.object) {
-      context.logger.info('Generating a class for `$name` schema...');
+      context.logger.info('  * Generating a class for `$name` schema...');
       return generateObject(context, name, schema);
     }
 
@@ -199,6 +202,16 @@ class SchemaGenerator {
           validateJsonBody.writeln('return false;');
         }
       }
+
+      for (var property in properties.entries
+          .where((p) => !(schema.required?.contains(p.key) ?? false))) {
+        final propertySchema = property.value;
+        if (propertySchema != null) {
+          validateJsonBody.writeln(
+              'if(json.containsKey(\'${property.key}\') && !(${context.validateJsonInstance(propertySchema, 'json[\'${property.key}\']')}))');
+          validateJsonBody.writeln('return false;');
+        }
+      }
     }
     validateJsonBody.writeln('return true;');
 
@@ -243,16 +256,7 @@ class SchemaGenerator {
     APISchemaObject schema,
     List<APISchemaObject?> oneOf,
   ) {
-    final childTypes = <String>[];
-    for (var child in oneOf) {
-      final uri = child?.referenceURI;
-      if (uri != null) {
-        final childTypeName = context.findSchemaName(uri);
-        childTypes.add(childTypeName);
-      }
-    }
-
     final builder = AnyOfClassBuilder();
-    return builder.build(name, childTypes);
+    return builder.build(context, name, oneOf);
   }
 }

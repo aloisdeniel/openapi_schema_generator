@@ -13,6 +13,7 @@ class IntegrationTestGenerator {
   Future<void> generate(
     Context context,
   ) async {
+    context.logger.info('[Integration tests]');
     final output = File(path.join(
         context.outputDirectory.path, 'test', 'integration_test.dart'));
 
@@ -39,6 +40,7 @@ class IntegrationTestGenerator {
 }
 
 String _operationCase(Context context, APIOperation operation) {
+  context.logger.info('  - For \'${operation.id}\' operation...');
   final result = StringBuffer();
 
   result.writeln('case \'${operation.id}\':');
@@ -107,7 +109,7 @@ Future<void> main() async {
   final testData =
       Platform.environment['API_TEST_DATA_FILE'] ?? 'api_test_data.json';
   final data = await File(testData).readAsString();
-  final json = jsonDecode(data);
+  final json = jsonDecode(data.injectEnvironmentVariables());
 
   final baseUrl = json['server'] as String;
   final operations = json['operations'] as List;
@@ -148,6 +150,20 @@ Api createApi({
   return Api(
     client: dio,
   );
+}
+
+extension EnvironmentVariableTemplateExtentions on String {
+  String injectEnvironmentVariables() {
+    var result = this;
+    final regexp = RegExp(r'\\\$\\{\\{([a-zA-Z\\_\\-0-9]+)\\}\\}');
+    RegExpMatch? match;
+    while ((match = regexp.firstMatch(result)) != null) {
+      final name = match!.group(1);
+      result = result.replaceRange(
+          match.start, match.end, Platform.environment[name] ?? '<\$name?>');
+    }
+    return result;
+  }
 }
 
 extension ApiTestExtensions on Api {

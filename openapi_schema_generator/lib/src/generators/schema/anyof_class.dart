@@ -1,5 +1,8 @@
 import 'package:code_builder/code_builder.dart';
+import 'package:open_api_forked/v3.dart';
+import 'package:openapi_schema_generator/src/context.dart';
 import 'package:openapi_schema_generator/src/utilities/naming.dart';
+import 'package:openapi_schema_generator/src/utilities/type_extension.dart';
 
 class AnyOfClassBuilder {
   const AnyOfClassBuilder({
@@ -8,32 +11,46 @@ class AnyOfClassBuilder {
 
   final bool withJson;
 
-  Spec build(String name, List<String> children) {
+  Spec build(Context context, String name, List<APISchemaObject?> oneOf) {
+    void forEachChild(
+        void Function(String name, APISchemaObject schema) onEach) {
+      for (var child in oneOf) {
+        final ref = child?.referenceURI;
+        if (child != null && ref != null) {
+          final childTypeName = context.findSchemaName(ref);
+          onEach(childTypeName, child);
+        }
+      }
+    }
+
     final builder = ClassBuilder()
       ..name = name
       ..annotations.add(CodeExpression(Code("immutable")));
 
     final constructor = ConstructorBuilder()..constant = true;
-    for (var childTypeName in children) {
+    forEachChild((childName, childSchema) {
       builder.fields.add(Field(
         (b) => b
           ..modifier = FieldModifier.final$
-          ..name = childTypeName.asFieldName()
-          ..type = refer(childTypeName.asClassName() + '?'),
+          ..name = childName.asFieldName()
+          ..type = refer(childName.asClassName() + '?'),
       ));
 
       final valueParameter = ParameterBuilder()
-        ..name = childTypeName.asFieldName()
+        ..name = childName.asFieldName()
         ..named = true
         ..toThis = true;
 
       constructor.optionalParameters.add(valueParameter.build());
-    }
+    });
 
     // At least one item must be present
     constructor.initializers.add(
       Code('assert(' +
-          children.map((e) => '${e.asFieldName()} != null').join('|| ') +
+          builder.fields
+              .build()
+              .map((e) => '${e.name.asFieldName()} != null')
+              .join('|| ') +
           ')'),
     );
 
@@ -49,17 +66,35 @@ class AnyOfClassBuilder {
         Parameter(
           (b) => b
             ..name = 'json'
-            ..type = refer('Map<String, dynamic>'),
+            ..type = refer('dynamic'),
         ),
       );
 
       final fromJsonBody = StringBuffer();
+
+      forEachChild((childName, childSchema) {
+        final resolve = context.resolveSchema(childSchema);
+
+        if (resolve.type.isBasicType()) {
+          fromJsonBody.writeln(
+              'if(${context.validateJsonInstance(childSchema, 'json')})');
+          fromJsonBody.writeln('return  $name(');
+          fromJsonBody.writeln(
+              '${childName.asFieldName()}: ${context.fromJsonInstance(childSchema, 'json')},');
+          fromJsonBody.writeln(');');
+        }
+      });
+
       fromJsonBody.writeln('return  $name(');
 
-      for (var childTypeName in children) {
-        fromJsonBody.writeln(
-            '${childTypeName.asFieldName()}: $childTypeName.validateJson(json) ? $childTypeName.fromJson(json) : null,');
-      }
+      forEachChild((childName, childSchema) {
+        final resolve = context.resolveSchema(childSchema);
+
+        if (!resolve.type.isBasicType()) {
+          fromJsonBody.writeln(
+              '${childName.asFieldName()}: ${context.validateJsonInstance(childSchema, 'json')} ? ${context.fromJsonInstance(childSchema, 'json')} : null,');
+        }
+      });
 
       fromJsonBody.writeln(');');
       fromJson.body = Code(fromJsonBody.toString());
@@ -68,15 +103,29 @@ class AnyOfClassBuilder {
       // ToJson
       final toJson = MethodBuilder()
         ..name = 'toJson'
-        ..returns = refer('Map<String, dynamic>');
+        ..returns = refer('dynamic');
 
       final toJsonBody = StringBuffer();
+
+      forEachChild((childName, childSchema) {
+        final resolve = context.resolveSchema(childSchema);
+        if (resolve.type.isBasicType()) {
+          toJsonBody.writeln('if(${childName.asFieldName()} != null)');
+          toJsonBody.writeln(
+              'return ${context.toJsonInstance(childSchema, childName.asFieldName())};');
+        }
+      });
+
       toJsonBody.writeln('return {');
 
-      for (var childTypeName in children) {
-        toJsonBody.writeln('if(${childTypeName.asFieldName()} != null)');
-        toJsonBody.writeln('...${childTypeName.asFieldName()}!.toJson(),');
-      }
+      forEachChild((childName, childSchema) {
+        final resolve = context.resolveSchema(childSchema);
+        if (!resolve.type.isBasicType()) {
+          toJsonBody.writeln('if(${childName.asFieldName()} != null)');
+          toJsonBody.writeln(
+              '...${context.toJsonInstance(childSchema, childName.asFieldName() + '!')},');
+        }
+      });
 
       toJsonBody.writeln('};');
 
@@ -93,16 +142,17 @@ class AnyOfClassBuilder {
         Parameter(
           (b) => b
             ..name = 'json'
-            ..type = refer('Map<String, dynamic>'),
+            ..type = refer('dynamic'),
         ),
       );
 
       final validateJsonBody = StringBuffer();
 
-      for (var childTypeName in children) {
-        validateJsonBody.writeln('if($childTypeName.validateJson(json))');
+      forEachChild((childName, childSchema) {
+        validateJsonBody.writeln(
+            'if(${context.validateJsonInstance(childSchema, 'json')})');
         validateJsonBody.writeln('return true;');
-      }
+      });
       validateJsonBody.writeln('return false;');
 
       validateJson.body = Code(validateJsonBody.toString());
@@ -117,7 +167,7 @@ class AnyOfClassBuilder {
       ..lambda = true
       ..annotations.add(CodeExpression(Code("override")))
       ..body = Code(
-          ' Object.hashAll([${children.map((e) => e.asFieldName()).join(',')}])');
+          ' Object.hashAll([${builder.fields.build().map((e) => e.name.asFieldName()).join(',')}])');
     builder.methods.add(hashcode.build());
 
     // Equals
@@ -137,8 +187,10 @@ class AnyOfClassBuilder {
     equals.body = Code('return identical(this, other) ||'
             '(other.runtimeType == runtimeType &&'
             ' other is ${builder.name} &&' +
-        children
-            .map((e) => e.asFieldName() + ' == other.' + e.asFieldName())
+        builder.fields
+            .build()
+            .map((e) =>
+                e.name.asFieldName() + ' == other.' + e.name.asFieldName())
             .join(' && ') +
         ');');
     builder.methods.add(equals.build());

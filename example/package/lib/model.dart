@@ -18,8 +18,6 @@ class Cat with _$Cat {
   }
 }
 
-typedef DogBreed = String;
-
 @freezed
 class Dog with _$Dog {
   const factory Dog({
@@ -33,6 +31,7 @@ class Dog with _$Dog {
   static bool validateJson(Map<String, dynamic> json) {
     if (!json.containsKey('id') || !(json['id'] is num)) return false;
     if (!json.containsKey('name') || !(json['name'] is String)) return false;
+    if (json.containsKey('breed') && !(json['breed'] is String)) return false;
     return true;
   }
 }
@@ -124,6 +123,13 @@ class CatAndDog with _$CatAndDog {
       breed: breed,
     );
   }
+
+  static bool validateJson(Map<String, dynamic> json) {
+    if (!json.containsKey('id') || !(json['id'] is num)) return false;
+    if (!json.containsKey('name') || !(json['name'] is String)) return false;
+    if (json.containsKey('breed') && !(json['breed'] is String)) return false;
+    return true;
+  }
 }
 
 @immutable
@@ -133,7 +139,7 @@ class CatAndOrDog {
     this.dog,
   }) : assert(cat != null || dog != null);
 
-  factory CatAndOrDog.fromJson(Map<String, dynamic> json) {
+  factory CatAndOrDog.fromJson(dynamic json) {
     return CatAndOrDog(
       cat: Cat.validateJson(json) ? Cat.fromJson(json) : null,
       dog: Dog.validateJson(json) ? Dog.fromJson(json) : null,
@@ -144,14 +150,14 @@ class CatAndOrDog {
 
   final Dog? dog;
 
-  Map<String, dynamic> toJson() {
+  dynamic toJson() {
     return {
       if (cat != null) ...cat!.toJson(),
       if (dog != null) ...dog!.toJson(),
     };
   }
 
-  static bool validateJson(Map<String, dynamic> json) {
+  static bool validateJson(dynamic json) {
     if (Cat.validateJson(json)) return true;
     if (Dog.validateJson(json)) return true;
     return false;
@@ -246,4 +252,15 @@ class Error with _$Error {
       return false;
     return true;
   }
+}
+
+enum DogBreed {
+  @JsonValue('Dingo')
+  dingo,
+  @JsonValue('Husky')
+  husky,
+  @JsonValue('Retriever')
+  retriever,
+  @JsonValue('Shepherd')
+  shepherd
 }

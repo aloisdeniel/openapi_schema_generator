@@ -23,7 +23,7 @@ Future<void> main(List<String> arguments) async {
 
   final context = await Context.fromOptions(options);
 
-  const PackageInitializer().initialize(context);
+  await const PackageInitializer().initialize(context);
 
   const schemas = SchemaGenerator();
   await schemas.generate(context);
@@ -34,6 +34,8 @@ Future<void> main(List<String> arguments) async {
   const api = ApiGenerator();
   await api.generate(context);
 
-  const integrationTest = IntegrationTestGenerator();
-  await integrationTest.generate(context);
+  if (options.integrationTests) {
+    const integrationTest = IntegrationTestGenerator();
+    await integrationTest.generate(context);
+  }
 }
